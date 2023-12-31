@@ -118,7 +118,7 @@ impl ADB {
     }
 
     pub fn start_app(&self, device: &Device, package: &str, activity: &str) {
-        println!("启动游戏:{}", package);
+        println!("启动 APP:{}", package);
         ADB::command_base()
             .args(["-s", &device.searial])
             .arg("shell")
