@@ -1,0 +1,9 @@
+[package]
+name = "arknights"
+version = "0.0.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+adb_helper = { version = "0.0.0", path = "../adb_helper" }

@@ -1,0 +1,7 @@
+[workspace]
+members = [
+  "adb_helper",
+  "arknights",
+  "wqmt",
+]
+resolver = "2"
