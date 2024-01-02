@@ -53,8 +53,34 @@ impl ADB {
         }
     }
 
+    fn esixt() -> bool{
+        match ADB::command_base().output() {
+            Ok(_) => true,
+            Err(_) => false,
+        }
+    }
+
+    fn download_adb() {
+        let url = match OSType::init() {
+            OSType::Windows => "https://googledownloads.cn/android/repository/platform-tools-latest-windows.zip", // windows,
+            OSType::Linux => "https://googledownloads.cn/android/repository/platform-tools-latest-linux.zip", // linux,
+            OSType::Undefine => todo!(),
+        };
+        
+        
+        
+    }
     // 自动发现连接的设备
     pub fn init(mut self) -> ADB {
+        if !ADB::esixt() {
+            println!("adb not exist");
+            match OSType::init(){
+                OSType::Windows => todo!(),
+                OSType::Linux => todo!(),
+                OSType::Undefine => todo!(),
+            }
+            ADB::download_adb();
+        }
         let process_list = search_port(ADB_LISTEN_PORT);
         match process_list.is_empty() {
             true => ADB::start_server(),
@@ -143,7 +169,13 @@ impl ADB {
         // 判断当前系统是什么系统
         // 查看端口5037 是否被占用
         println!("启动adb中...");
-        ADB::command_base().arg("start-server");
+        let output = match ADB::command_base().arg("start-server").output() {
+            Ok(output) => output,
+            Err(_) => {
+                // download_adb
+                todo!()
+            },
+        };
     }
 
     pub fn kill_server() {
@@ -179,20 +211,46 @@ impl ADB {
     pub fn tcpip(port: u16) {}
 }
 
+#[derive(Debug)]
+pub enum OSType {
+    Windows,
+    Linux,
+    Undefine,
+}
+
+impl OSType {
+    pub fn init()->Self {
+        match std::env::consts::OS {
+            "linux" => OSType::Linux,
+            "windows" => OSType::Windows,
+            _ => OSType::Undefine,
+        }
+    }
+}
+
 pub fn search_port(port: u16) -> Vec<String> {
-    let stdout = String::from_utf8(
-        Command::new("lsof")
+    let os_type: OSType = OSType::init();
+    println!("{:#?}", os_type);
+    let output = match os_type {
+        OSType::Linux => Command::new("lsof")
             .arg(format!("-i:{port}"))
             .output()
-            .expect("lsof 报错啦")
-            .stdout,
-    )
-    .unwrap();
+            .expect("lsof 报错啦"),
+        OSType::Windows => Command::new("netstat")
+            .arg("-ano|findstr")
+            .arg(format!("\"{}\"", port))
+            .output()
+            .expect("netstat 报错啦"),
+        _ => todo!(),
+    };
+
+    let stdout = String::from_utf8(output.stdout).unwrap();
 
     let mut lines = stdout
         .split_terminator('\n')
         .map(|line| line.to_string())
         .collect::<Vec<String>>();
+
     match lines.is_empty() {
         true => lines,
         false => lines.drain(1..).collect(),
