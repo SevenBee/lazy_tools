@@ -18,7 +18,20 @@ use strum_macros::EnumString;
 
 struct Package {
     version: Version,
+    name: &'static str
 }
+
+impl Package {
+    // 获取apk包的版本号
+    // pub fn get_version(package_name:&str) -> Version{
+    //     let stdout = String::from_utf8(
+    //         Command::new("dumpsys")
+    //             .arg("package")
+    //             .arg(name)
+    //     )
+    // }
+}
+
 #[derive(EnumString, Debug)]
 pub enum DeviceStatus {
     device,
@@ -53,7 +66,7 @@ impl ADB {
         }
     }
 
-    fn esixt() -> bool{
+    fn esixt() -> bool {
         match ADB::command_base().output() {
             Ok(_) => true,
             Err(_) => false,
@@ -62,19 +75,20 @@ impl ADB {
 
     fn download_adb() {
         let url = match OSType::init() {
-            OSType::Windows => "https://googledownloads.cn/android/repository/platform-tools-latest-windows.zip", // windows,
-            OSType::Linux => "https://googledownloads.cn/android/repository/platform-tools-latest-linux.zip", // linux,
+            OSType::Windows => {
+                "https://googledownloads.cn/android/repository/platform-tools-latest-windows.zip"
+            } // windows,
+            OSType::Linux => {
+                "https://googledownloads.cn/android/repository/platform-tools-latest-linux.zip"
+            } // linux,
             OSType::Undefine => todo!(),
         };
-        
-        
-        
     }
     // 自动发现连接的设备
     pub fn init(mut self) -> ADB {
         if !ADB::esixt() {
             println!("adb not exist");
-            match OSType::init(){
+            match OSType::init() {
                 OSType::Windows => todo!(),
                 OSType::Linux => todo!(),
                 OSType::Undefine => todo!(),
@@ -143,6 +157,27 @@ impl ADB {
         ADB::command_base().arg("disconnect");
     }
 
+    /// 获取当前显示的 activity
+    pub fn get_current_activity(&self, device: &Device) {
+        let stdout = String::from_utf8(
+            ADB::command_base()
+                .args(["-s", &device.searial])
+                .arg("shell")
+                .args([
+                    "dumpsys", "activity", "top", "|", "grep", "ACTIVITY", "|", "tail", "-n", "1",
+                ])
+                .output()
+                .expect("get_current_activity failed")
+                .stdout,
+        )
+        .unwrap();
+        let current_activity = stdout.trim();
+        // .split_terminator("\n")
+        // .collect::<Vec<&str>>();
+        println!("{:#?}", current_activity);
+        // current_activity
+    }
+
     pub fn start_app(&self, device: &Device, package: &str, activity: &str) {
         println!("启动 APP:{}", package);
         ADB::command_base()
@@ -174,7 +209,7 @@ impl ADB {
             Err(_) => {
                 // download_adb
                 todo!()
-            },
+            }
         };
     }
 
@@ -208,7 +243,9 @@ impl ADB {
     pub fn root() {}
     pub fn unroot() {}
     pub fn usb() {}
-    pub fn tcpip(port: u16) {}
+    pub fn tcpip(port: u16) {
+        ADB::command_base().arg(port.to_string());
+    }
 }
 
 #[derive(Debug)]
@@ -219,7 +256,7 @@ pub enum OSType {
 }
 
 impl OSType {
-    pub fn init()->Self {
+    pub fn init() -> Self {
         match std::env::consts::OS {
             "linux" => OSType::Linux,
             "windows" => OSType::Windows,
