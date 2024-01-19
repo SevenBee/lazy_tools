@@ -1,11 +1,11 @@
 [package]
-name = "arknights"
+name = "gaming"
 version = "0.0.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-adb_helper = { version = "0.0.0", path = "../adb_helper" }
-rusqlite = "0.30.0"
-tokio = { version = "1.35.1", features = ["full"] }
+eframe = { version = "0.25.0", features = ["__screenshot"] }
+egui_extras = { version = "0.25.0", features = ["image"] }
+env_logger = "0.10.1"

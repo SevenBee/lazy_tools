@@ -3,5 +3,7 @@ members = [
   "adb_helper",
   "arknights",
   "wqmt",
+  "gaming",
+  "egui_examples",
 ]
 resolver = "2"
